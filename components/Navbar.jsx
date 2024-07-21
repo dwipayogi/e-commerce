@@ -107,7 +107,7 @@ export default function Navbar() {
               <Input
                 type="search"
                 placeholder="Search products..."
-                className="pl-8 w-[400px] md:w-[300px]"
+                className="pl-8 w-full md:w-[300px]"
               />
             </div>
           </form>
