@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import CartDropdown from "./CartDropdown"
 import UserDropdown from "./UserDropdown"
 import { useAuth } from "../context/AuthContext"
+import { Button } from "@/components/ui/button"
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -47,7 +48,18 @@ export default function Navbar() {
         )}
         <div className="flex items-center space-x-4">
           <CartDropdown />
-          <UserDropdown />
+          {user ? (
+            <UserDropdown />
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link href="/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button>Register</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </nav>

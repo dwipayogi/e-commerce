@@ -1,19 +1,19 @@
 "use client"
 
-import React, { createContext, useContext, useState, type ReactNode } from "react"
+import type React from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 
 interface User {
-  id: string
+  id: number
   name: string
   email: string
-  avatar?: string
+  address?: string
+  phone?: string
   isAdmin: boolean
-  address: string
-  phone: string
 }
 
 interface CartItem {
-  id: string
+  id: number
   name: string
   price: number
   image: string
@@ -22,36 +22,91 @@ interface CartItem {
 
 interface AuthContextType {
   user: User | null
-  login: () => void
+  login: (email: string, password: string) => Promise<void>
   logout: () => void
+  register: (name: string, email: string, password: string, address?: string, phone?: string) => Promise<void>
   cart: CartItem[]
   addToCart: (item: Omit<CartItem, "quantity">) => void
-  removeFromCart: (id: string) => void
-  updateCartItemQuantity: (id: string, quantity: number) => void
+  removeFromCart: (id: number) => void
+  updateCartItemQuantity: (id: number, quantity: number) => void
+  placeOrder: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
 
-  const login = () => {
-    // Simulate login
-    setUser({
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      avatar: "/placeholder.svg?height=32&width=32",
-      isAdmin: true,
-      address: "123 Main St, Anytown, AN 12345",
-      phone: "+1 (555) 123-4567",
-    })
+  useEffect(() => {
+    // Check for existing session
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    }
+  }, [])
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Login failed")
+      }
+
+      const data = await response.json()
+      const userData: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        address: data.user.address,
+        phone: data.user.phone,
+        isAdmin: data.user.isAdmin,
+      }
+      setUser(userData)
+      localStorage.setItem("user", JSON.stringify(userData))
+    } catch (error) {
+      console.error("Login error:", error)
+      throw error
+    }
   }
 
   const logout = () => {
-    // Simulate logout
     setUser(null)
+    localStorage.removeItem("user")
+  }
+
+  const register = async (name: string, email: string, password: string, address?: string, phone?: string) => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, address, phone }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Registration failed")
+      }
+
+      const data = await response.json()
+      const userData: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        address: data.user.address,
+        phone: data.user.phone,
+        isAdmin: data.user.isAdmin,
+      }
+      setUser(userData)
+      localStorage.setItem("user", JSON.stringify(userData))
+    } catch (error) {
+      console.error("Registration error:", error)
+      throw error
+    }
   }
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {
@@ -66,11 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = (id: number) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id))
   }
 
-  const updateCartItemQuantity = (id: string, quantity: number) => {
+  const updateCartItemQuantity = (id: number, quantity: number) => {
     setCart((prevCart) =>
       prevCart
         .map((item) => (item.id === id ? { ...item, quantity: Math.max(0, quantity) } : item))
@@ -78,8 +133,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  const placeOrder = async () => {
+    if (!user) {
+      throw new Error("User must be logged in to place an order")
+    }
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const orderItems = cart.map((item) => ({
+      productId: item.id,
+      quantity: item.quantity,
+      price: item.price,
+    }))
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, items: orderItems, total }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to place order")
+      }
+
+      // Clear the cart after successful order
+      setCart([])
+    } catch (error) {
+      console.error("Order placement error:", error)
+      throw error
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, cart, addToCart, removeFromCart, updateCartItemQuantity }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        register,
+        cart,
+        addToCart,
+        removeFromCart,
+        updateCartItemQuantity,
+        placeOrder,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
