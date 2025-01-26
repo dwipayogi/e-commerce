@@ -7,6 +7,9 @@ interface User {
   name: string
   email: string
   avatar?: string
+  isAdmin: boolean
+  address: string
+  phone: string
 }
 
 interface CartItem {
@@ -40,6 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: "John Doe",
       email: "john@example.com",
       avatar: "/placeholder.svg?height=32&width=32",
+      isAdmin: true,
+      address: "123 Main St, Anytown, AN 12345",
+      phone: "+1 (555) 123-4567",
     })
   }
 

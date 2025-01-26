@@ -7,10 +7,12 @@ import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import CartDropdown from "./CartDropdown"
 import UserDropdown from "./UserDropdown"
+import { useAuth } from "../context/AuthContext"
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
+  const { user } = useAuth()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,6 +40,11 @@ export default function Navbar() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
         </form>
+        {user && user.isAdmin && (
+          <Link href="/dashboard" className="text-sm font-medium">
+            Dashboard
+          </Link>
+        )}
         <div className="flex items-center space-x-4">
           <CartDropdown />
           <UserDropdown />

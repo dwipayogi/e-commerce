@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -38,9 +38,21 @@ const getReviews = async (productId: string): Promise<Review[]> => {
 export default function UserReviews({ productId }: { productId: string }) {
   const [reviews, setReviews] = useState<Review[]>([])
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" })
+  const [isLoading, setIsLoading] = useState(true)
 
-  useState(() => {
-    getReviews(productId).then(setReviews)
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const fetchedReviews = await getReviews(productId)
+        setReviews(fetchedReviews)
+      } catch (error) {
+        console.error("Error fetching reviews:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchReviews()
   }, [productId])
 
   const handleSubmitReview = () => {
@@ -54,6 +66,10 @@ export default function UserReviews({ productId }: { productId: string }) {
     }
     setReviews([review, ...reviews])
     setNewReview({ rating: 0, comment: "" })
+  }
+
+  if (isLoading) {
+    return <div>Loading reviews...</div>
   }
 
   return (
