@@ -1,18 +1,14 @@
 import Image from "next/image"
-import Link from "next/link";
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "../context/AuthContext"
+import type { products } from "@/db/schema"
 
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-}
+type Product = typeof products.$inferSelect
 
 export default function FeaturedProduct({ product }: { product: Product }) {
   const { addToCart } = useAuth()
-  
+
   return (
     <div className="bg-gray-100 p-8 rounded-lg mb-12">
       <h2 className="text-2xl font-semibold mb-4">Featured Product</h2>
@@ -26,12 +22,10 @@ export default function FeaturedProduct({ product }: { product: Product }) {
         />
         <div>
           <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-          <p className="text-lg font-bold mb-4">${product.price.toFixed(2)}</p>
+          <p className="text-lg font-bold mb-4">${(product.price / 100).toFixed(2)}</p>
           <div className="space-x-4">
             <Link href={`/detail/${product.id}`}>
-              <Button variant="outline">
-                View Details
-              </Button>
+              <Button variant="outline">View Details</Button>
             </Link>
             <Button onClick={() => addToCart(product)}>Add to Cart</Button>
           </div>

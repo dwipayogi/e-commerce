@@ -2,21 +2,13 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { getUserByEmail } from "@/lib/db"
+import type { users, products } from "@/db/schema"
 
-interface User {
-  id: number
-  name: string
-  email: string
-  address?: string
-  phone?: string
-  isAdmin: boolean
-}
+type User = typeof users.$inferSelect
+type Product = typeof products.$inferSelect
 
-interface CartItem {
-  id: number
-  name: string
-  price: number
-  image: string
+interface CartItem extends Product {
   quantity: number
 }
 
@@ -26,7 +18,7 @@ interface AuthContextType {
   logout: () => void
   register: (name: string, email: string, password: string, address?: string, phone?: string) => Promise<void>
   cart: CartItem[]
-  addToCart: (item: Omit<CartItem, "quantity">) => void
+  addToCart: (item: Product) => void
   removeFromCart: (id: number) => void
   updateCartItemQuantity: (id: number, quantity: number) => void
   placeOrder: () => Promise<void>
@@ -59,16 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json()
-      const userData: User = {
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        address: data.user.address,
-        phone: data.user.phone,
-        isAdmin: data.user.isAdmin,
-      }
-      setUser(userData)
-      localStorage.setItem("user", JSON.stringify(userData))
+      setUser(data.user)
+      localStorage.setItem("user", JSON.stringify(data.user))
     } catch (error) {
       console.error("Login error:", error)
       throw error
@@ -93,23 +77,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json()
-      const userData: User = {
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        address: data.user.address,
-        phone: data.user.phone,
-        isAdmin: data.user.isAdmin,
-      }
-      setUser(userData)
-      localStorage.setItem("user", JSON.stringify(userData))
+      setUser(data.user)
+      localStorage.setItem("user", JSON.stringify(data.user))
     } catch (error) {
       console.error("Registration error:", error)
       throw error
     }
   }
 
-  const addToCart = (item: Omit<CartItem, "quantity">) => {
+  const addToCart = (item: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id)
       if (existingItem) {

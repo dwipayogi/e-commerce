@@ -1,25 +1,12 @@
 import ProductCard from "@/app/components/ProductCard"
+import { getProducts } from "@/lib/db"
+import type { products } from "@/db/schema"
 
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-}
+type Product = typeof products.$inferSelect
 
-// This would typically come from your database
-const getRelatedProducts = async (currentProductId: string): Promise<Product[]> => {
-  // Simulating an API call or database query
-  return [
-    { id: "2", name: "Smartphone", price: 699.99, image: "/placeholder.svg?height=200&width=200" },
-    { id: "3", name: "Laptop", price: 1299.99, image: "/placeholder.svg?height=200&width=200" },
-    { id: "4", name: "T-Shirt", price: 24.99, image: "/placeholder.svg?height=200&width=200" },
-    { id: "5", name: "Jeans", price: 49.99, image: "/placeholder.svg?height=200&width=200" },
-  ].filter((product) => product.id !== currentProductId)
-}
-
-export default async function RelatedProducts({ currentProductId }: { currentProductId: string }) {
-  const relatedProducts = await getRelatedProducts(currentProductId)
+export default async function RelatedProducts({ currentProductId }: { currentProductId: number }) {
+  const allProducts = await getProducts()
+  const relatedProducts = allProducts.filter((product) => product.id !== currentProductId).slice(0, 4) // Limit to 4 related products
 
   return (
     <div className="mt-12">

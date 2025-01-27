@@ -2,13 +2,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "../context/AuthContext"
+import type { products } from "@/db/schema"
 
-interface Product {
-  id: string
-  name: string
-  price: number
-  image: string
-}
+type Product = typeof products.$inferSelect
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useAuth()
@@ -23,7 +19,7 @@ export default function ProductCard({ product }: { product: Product }) {
         className="rounded-lg mb-4 mx-auto"
       />
       <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-      <p className="text-gray-600 mb-4">${product.price.toFixed(2)}</p>
+      <p className="text-gray-600 mb-4">${(product.price / 100).toFixed(2)}</p>
       <div className="flex justify-between">
         <Link href={`/detail/${product.id}`}>
           <Button variant="outline" size="sm">

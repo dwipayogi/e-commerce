@@ -60,6 +60,7 @@
     "zod": "^3.24.1",
     "drizzle-orm": "latest",
     "@vercel/postgres": "latest",
+    "uuid": "latest",
     "bcryptjs": "latest"
   },
   "devDependencies": {

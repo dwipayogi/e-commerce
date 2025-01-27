@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server"
-import { db } from "@/db"
-import { products } from "@/db/schema"
+import { getProducts, createProduct } from "@/lib/db"
 
 export async function GET() {
-  const allProducts = await db.select().from(products)
+  const allProducts = await getProducts()
   return NextResponse.json(allProducts)
 }
 
 export async function POST(request: Request) {
-  const { name, description, price, image, stock } = await request.json()
-  const newProduct = await db
-    .insert(products)
-    .values({
-      name,
-      description,
-      price,
-      image,
-      stock,
-    })
-    .returning()
-  return NextResponse.json(newProduct[0], { status: 201 })
+  const productData = await request.json()
+  const newProduct = await createProduct(productData)
+  return NextResponse.json(newProduct, { status: 201 })
 }
 

@@ -1,38 +1,31 @@
+import { getProducts } from "@/lib/db"
 import FeaturedProduct from "./components/FeaturedProduct"
 import CategorySection from "./components/CategorySection"
 
-// Mock data for demonstration
-const featuredProduct = {
-  id: "1",
-  name: "Premium Wireless Headphones",
-  price: 199.99,
-  image: "/placeholder.svg?height=400&width=400",
-}
+export default async function Home() {
+  const products = await getProducts()
 
-const categories = [
-  {
-    name: "Electronics",
-    products: [
-      { id: "2", name: "Smartphone", price: 699.99, image: "/placeholder.svg?height=200&width=200" },
-      { id: "3", name: "Laptop", price: 1299.99, image: "/placeholder.svg?height=200&width=200" },
-    ],
-  },
-  {
-    name: "Clothing",
-    products: [
-      { id: "4", name: "T-Shirt", price: 24.99, image: "/placeholder.svg?height=200&width=200" },
-      { id: "5", name: "Jeans", price: 49.99, image: "/placeholder.svg?height=200&width=200" },
-    ],
-  },
-]
+  // Assuming the first product is featured
+  const featuredProduct = products[0]
 
-export default function Home() {
+  // Group products by category
+  const categories = products.reduce(
+    (acc, product) => {
+      if (!acc[product.category]) {
+        acc[product.category] = []
+      }
+      acc[product.category].push(product)
+      return acc
+    },
+    {} as Record<string, typeof products>,
+  )
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8">Our Products</h1>
-      <FeaturedProduct product={featuredProduct} />
-      {categories.map((category) => (
-        <CategorySection key={category.name} category={category} />
+      {featuredProduct && <FeaturedProduct product={featuredProduct} />}
+      {Object.entries(categories).map(([category, products]) => (
+        <CategorySection key={category} category={category} products={products} />
       ))}
     </div>
   )

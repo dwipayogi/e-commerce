@@ -4,41 +4,44 @@ import { useState, useEffect } from "react"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { useAuth } from "@/app/context/AuthContext"
 
 interface Review {
-  id: string
-  userName: string
+  id: number
+  userId: number
+  productId: number
   rating: number
   comment: string
-  date: string
+  createdAt: Date
 }
 
-// This would typically come from your database
-const getReviews = async (productId: string): Promise<Review[]> => {
-  // Simulating an API call or database query
-  return [
-    {
-      id: "1",
-      userName: "John Doe",
-      rating: 5,
-      comment: "Great product! Highly recommended.",
-      date: "2023-05-15",
-    },
-    {
-      id: "2",
-      userName: "Jane Smith",
-      rating: 4,
-      comment: "Good quality, but a bit pricey.",
-      date: "2023-05-10",
-    },
-    // Add more reviews as needed
-  ]
+async function getReviews(productId: number): Promise<Review[]> {
+  const response = await fetch(`/api/products/${productId}/reviews`)
+  if (!response.ok) {
+    throw new Error("Failed to fetch reviews")
+  }
+  return response.json()
 }
 
-export default function UserReviews({ productId }: { productId: string }) {
+async function submitReview(productId: number, rating: number, comment: string) {
+  const response = await fetch(`/api/products/${productId}/reviews`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ rating, comment }),
+  })
+  if (!response.ok) {
+    throw new Error("Failed to submit review")
+  }
+  return response.json()
+}
+
+export default function UserReviews({ productId }: { productId: number }) {
   const [reviews, setReviews] = useState<Review[]>([])
   const [newReview, setNewReview] = useState({ rating: 0, comment: "" })
   const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -55,17 +58,19 @@ export default function UserReviews({ productId }: { productId: string }) {
     fetchReviews()
   }, [productId])
 
-  const handleSubmitReview = () => {
-    // Here you would typically send the new review to your backend
-    const review: Review = {
-      id: String(reviews.length + 1),
-      userName: "Current User", // In a real app, you'd get this from the authenticated user
-      rating: newReview.rating,
-      comment: newReview.comment,
-      date: new Date().toISOString().split("T")[0],
+  const handleSubmitReview = async () => {
+    if (!user) {
+      alert("You must be logged in to submit a review")
+      return
     }
-    setReviews([review, ...reviews])
-    setNewReview({ rating: 0, comment: "" })
+
+    try {
+      const review = await submitReview(productId, newReview.rating, newReview.comment)
+      setReviews([review, ...reviews])
+      setNewReview({ rating: 0, comment: "" })
+    } catch (error) {
+      console.error("Error submitting review:", error)
+    }
   }
 
   if (isLoading) {
@@ -75,26 +80,28 @@ export default function UserReviews({ productId }: { productId: string }) {
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Write a Review</h3>
-        <div className="flex items-center mb-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`h-6 w-6 cursor-pointer ${star <= newReview.rating ? "text-yellow-400" : "text-gray-300"}`}
-              fill="currentColor"
-              onClick={() => setNewReview({ ...newReview, rating: star })}
-            />
-          ))}
+      {user && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Write a Review</h3>
+          <div className="flex items-center mb-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={`h-6 w-6 cursor-pointer ${star <= newReview.rating ? "text-yellow-400" : "text-gray-300"}`}
+                fill="currentColor"
+                onClick={() => setNewReview({ ...newReview, rating: star })}
+              />
+            ))}
+          </div>
+          <Textarea
+            placeholder="Write your review here..."
+            value={newReview.comment}
+            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+            className="mb-2"
+          />
+          <Button onClick={handleSubmitReview}>Submit Review</Button>
         </div>
-        <Textarea
-          placeholder="Write your review here..."
-          value={newReview.comment}
-          onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-          className="mb-2"
-        />
-        <Button onClick={handleSubmitReview}>Submit Review</Button>
-      </div>
+      )}
       <div className="space-y-4">
         {reviews.map((review) => (
           <div key={review.id} className="border-b pb-4">
@@ -108,8 +115,8 @@ export default function UserReviews({ productId }: { productId: string }) {
                   />
                 ))}
               </div>
-              <span className="ml-2 font-semibold">{review.userName}</span>
-              <span className="ml-2 text-gray-500 text-sm">{review.date}</span>
+              <span className="ml-2 font-semibold">User {review.userId}</span>
+              <span className="ml-2 text-gray-500 text-sm">{new Date(review.createdAt).toLocaleDateString()}</span>
             </div>
             <p>{review.comment}</p>
           </div>
