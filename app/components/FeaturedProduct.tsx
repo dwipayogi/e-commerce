@@ -1,14 +1,17 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "../context/AuthContext"
-import type { products } from "@/db/schema"
+import { addToCart } from "@/lib/cartUtils"
 
-type Product = typeof products.$inferSelect
+interface Product {
+  id: number
+  name: string
+  price: number
+  image: string
+  description: string
+}
 
 export default function FeaturedProduct({ product }: { product: Product }) {
-  const { addToCart } = useAuth()
-
   return (
     <div className="bg-gray-100 p-8 rounded-lg mb-12">
       <h2 className="text-2xl font-semibold mb-4">Featured Product</h2>

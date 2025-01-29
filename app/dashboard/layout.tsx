@@ -1,17 +1,13 @@
 import { Sidebar } from "@/components/dashboard/Sidebar"
 import { redirect } from "next/navigation"
-import { useAuth } from "../context/AuthContext"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user } = useAuth()
-
-  if (!user || !user.isAdmin) {
-    redirect("/")
-  }
+  // Since we've removed authentication, we'll just render the dashboard for now
+  // In a real application, you'd want to implement proper authentication here
 
   return (
     <div className="flex h-screen bg-gray-100">

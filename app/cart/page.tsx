@@ -1,18 +1,35 @@
 "use client"
 
-import { useAuth } from "../context/AuthContext"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, Trash2 } from "lucide-react"
+import { getCart, updateCartItemQuantity, removeFromCart, clearCart, type CartItem } from "@/lib/cartUtils"
 
 export default function CartPage() {
-  const { cart, updateCartItemQuantity, removeFromCart } = useAuth()
+  const [cart, setCart] = useState<CartItem[]>([])
+
+  useEffect(() => {
+    setCart(getCart())
+  }, [])
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
+  const handleUpdateQuantity = (id: number, newQuantity: number) => {
+    updateCartItemQuantity(id, newQuantity)
+    setCart(getCart())
+  }
+
+  const handleRemoveItem = (id: number) => {
+    removeFromCart(id)
+    setCart(getCart())
+  }
+
   const handleCheckout = () => {
-    // Implement checkout logic
-    console.log("Proceeding to checkout")
+    // Implement checkout logic here
+    alert("Proceeding to checkout")
+    clearCart()
+    setCart([])
   }
 
   if (cart.length === 0) {
@@ -40,12 +57,12 @@ export default function CartPage() {
               />
               <div className="flex-grow">
                 <h2 className="text-lg font-semibold">{item.name}</h2>
-                <p className="text-gray-600">${item.price.toFixed(2)}</p>
+                <p className="text-gray-600">${(item.price / 100).toFixed(2)}</p>
                 <div className="flex items-center mt-2">
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
@@ -53,17 +70,17 @@ export default function CartPage() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="ml-4" onClick={() => removeFromCart(item.id)}>
+                  <Button variant="ghost" size="icon" className="ml-4" onClick={() => handleRemoveItem(item.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                <p className="font-semibold">${((item.price * item.quantity) / 100).toFixed(2)}</p>
               </div>
             </div>
           ))}
@@ -73,7 +90,7 @@ export default function CartPage() {
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
             <div className="flex justify-between mb-2">
               <span>Subtotal</span>
-              <span>${totalPrice.toFixed(2)}</span>
+              <span>${(totalPrice / 100).toFixed(2)}</span>
             </div>
             <div className="flex justify-between mb-2">
               <span>Shipping</span>
@@ -82,7 +99,7 @@ export default function CartPage() {
             <div className="border-t pt-2 mt-2">
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>${(totalPrice / 100).toFixed(2)}</span>
               </div>
             </div>
             <Button className="w-full mt-4" onClick={handleCheckout}>

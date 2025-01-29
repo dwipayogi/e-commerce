@@ -1,7 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useAuth } from "@/app/context/AuthContext"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,12 +11,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ShoppingCart } from "lucide-react"
+import { getCart, getCartTotal, type CartItem } from "@/lib/cartUtils"
 
 export default function CartDropdown() {
-  const { cart } = useAuth()
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [total, setTotal] = useState(0)
 
-  const totalItems = cart.reduce((total, item) => total + item.quantity, 0)
-  const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+  useEffect(() => {
+    const updateCart = () => {
+      setCart(getCart())
+      setTotal(getCartTotal())
+    }
+
+    updateCart()
+    window.addEventListener("storage", updateCart)
+
+    return () => {
+      window.removeEventListener("storage", updateCart)
+    }
+  }, [])
+
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
     <DropdownMenu>
@@ -30,29 +45,29 @@ export default function CartDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="end">
+      <DropdownMenuContent className="w-80" align="end">
         <h3 className="font-semibold p-2">Cart</h3>
         {cart.length === 0 ? (
           <DropdownMenuItem>Your cart is empty</DropdownMenuItem>
         ) : (
           <>
             {cart.map((item) => (
-              <DropdownMenuItem key={item.id}>
+              <DropdownMenuItem key={item.id} className="flex justify-between">
                 <span>{item.name}</span>
-                <span className="ml-auto">
-                  {item.quantity} x ${item.price.toFixed(2)}
+                <span className="text-sm text-gray-500">
+                  {item.quantity} x ${(item.price / 100).toFixed(2)}
                 </span>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <span className="font-semibold">Total:</span>
-              <span className="ml-auto font-semibold">${totalPrice.toFixed(2)}</span>
+              <span className="ml-auto font-semibold">${(total / 100).toFixed(2)}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/cart/checkout" className="w-full">
-                <Button className="w-full">Checkout</Button>
+              <Link href="/cart" className="w-full">
+                <Button className="w-full">View Cart</Button>
               </Link>
             </DropdownMenuItem>
           </>

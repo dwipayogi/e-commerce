@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, Home, Package } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, Home, Package, MessageCircle } from "lucide-react"
 
 const menuItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Manage Items", href: "/dashboard/items", icon: ShoppingBag },
   { name: "Orders to Ship", href: "/dashboard/orders-to-ship", icon: Package },
+  { name: "Chats", href: "/dashboard/chats", icon: MessageCircle },
   { name: "Back to Store", href: "/", icon: Home },
 ]
 

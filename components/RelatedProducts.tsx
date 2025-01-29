@@ -1,12 +1,15 @@
 import ProductCard from "@/app/components/ProductCard"
-import { getProducts } from "@/lib/db"
-import type { products } from "@/db/schema"
 
-type Product = typeof products.$inferSelect
+// Dummy data
+const dummyProducts = [
+  { id: 2, name: "Smartphone", price: 69999, image: "/placeholder.svg?height=200&width=200" },
+  { id: 3, name: "Laptop", price: 129999, image: "/placeholder.svg?height=200&width=200" },
+  { id: 4, name: "T-Shirt", price: 2499, image: "/placeholder.svg?height=200&width=200" },
+  { id: 5, name: "Jeans", price: 4999, image: "/placeholder.svg?height=200&width=200" },
+]
 
-export default async function RelatedProducts({ currentProductId }: { currentProductId: number }) {
-  const allProducts = await getProducts()
-  const relatedProducts = allProducts.filter((product) => product.id !== currentProductId).slice(0, 4) // Limit to 4 related products
+export default function RelatedProducts({ currentProductId }: { currentProductId: number }) {
+  const relatedProducts = dummyProducts.filter((product) => product.id !== currentProductId)
 
   return (
     <div className="mt-12">
